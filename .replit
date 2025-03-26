@@ -1,0 +1,28 @@
+run = "bash deploy.sh"
+entrypoint = "app/page.tsx"
+
+[env]
+NEXT_PUBLIC_REPLIT_DEPLOYMENT = "true"
+
+[nix]
+channel = "stable-22_11"
+
+[packager]
+language = "nodejs"
+
+[packager.features]
+packageSearch = true
+guessImports = true
+
+[languages.javascript]
+pattern = "**/{*.js,*.jsx,*.ts,*.tsx}"
+syntax = "javascript"
+
+[languages.javascript.languageServer]
+start = [ "typescript-language-server", "--stdio" ]
+
+[deployment]
+run = ["sh", "-c", "npm start"]
+deploymentTarget = "cloudrun"
+ignorePorts = false
+

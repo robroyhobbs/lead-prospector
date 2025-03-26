@@ -1,4 +1,5 @@
 import { UnifiedLead } from "../../processors/types";
+import { NotificationConfig } from "./notifications/types";
 
 export type LeadStatus = "new" | "contacted" | "qualified" | "negotiating" | "closed" | "rejected";
 
@@ -19,11 +20,7 @@ export interface LeadManagementConfig {
     maxPrice?: number;
     categories?: string[];
   };
-  notificationSettings?: {
-    email?: boolean;
-    slack?: boolean;
-    webhook?: string;
-  };
+  notificationSettings?: NotificationConfig;
 }
 
 export interface LeadManagementResult {

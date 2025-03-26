@@ -1,6 +1,7 @@
 import { createLeadManager } from "../lead-manager";
 import { LeadManagementConfig, LeadInteraction } from "../types";
 import { UnifiedLead } from "../../processors/types";
+import { NotificationConfig } from "../notifications/types";
 
 describe("LeadManager", () => {
   const testLead: UnifiedLead = {
@@ -17,6 +18,28 @@ describe("LeadManager", () => {
     metadata: {},
   };
 
+  const notificationConfig: NotificationConfig = {
+    email: {
+      smtpHost: "smtp.example.com",
+      smtpPort: 587,
+      smtpUser: "test@example.com",
+      smtpPass: "password",
+      fromEmail: "noreply@example.com",
+      toEmail: "alerts@example.com",
+    },
+    slack: {
+      webhookUrl: "https://hooks.slack.com/services/test",
+      channel: "#leads",
+      username: "Lead Manager",
+    },
+    webhook: {
+      url: "https://api.example.com/webhook",
+      headers: {
+        "Authorization": "Bearer test-token",
+      },
+    },
+  };
+
   const config: LeadManagementConfig = {
     defaultStatus: "new",
     autoQualify: {
@@ -25,9 +48,7 @@ describe("LeadManager", () => {
       maxPrice: 1000,
       categories: ["Technology"],
     },
-    notificationSettings: {
-      email: true,
-    },
+    notificationSettings: notificationConfig,
   };
 
   it("should create a new lead with auto-qualification", async () => {
@@ -95,5 +116,21 @@ describe("LeadManager", () => {
 
     expect(result).toBeDefined();
     expect(result.status).toBe("new"); // Should not auto-qualify
+  });
+
+  it("should work without notification settings", async () => {
+    const noNotificationConfig = {
+      ...config,
+      notificationSettings: undefined,
+    };
+
+    const manager = createLeadManager(noNotificationConfig);
+    const result = await manager.execute({
+      lead: testLead,
+      action: "create",
+    });
+
+    expect(result).toBeDefined();
+    expect(result.status).toBe("qualified");
   });
 }); 

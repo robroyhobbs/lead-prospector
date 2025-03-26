@@ -7,6 +7,8 @@ import {
   LeadManagementResult,
 } from "./types";
 import { UnifiedLead } from "../processors/types";
+import { NotificationService } from "./notifications/notification-service";
+import { NotificationPayload } from "./notifications/types";
 
 function shouldAutoQualify(lead: UnifiedLead, config: LeadManagementConfig): boolean {
   if (!config.autoQualify) return false;
@@ -34,17 +36,38 @@ function shouldAutoQualify(lead: UnifiedLead, config: LeadManagementConfig): boo
 async function sendNotification(
   lead: UnifiedLead,
   status: LeadStatus,
-  config: LeadManagementConfig
+  config: LeadManagementConfig,
+  notificationService: NotificationService,
+  type: NotificationPayload["type"],
+  interaction?: LeadInteraction
 ) {
-  const { notificationSettings } = config;
-  if (!notificationSettings) return;
+  const payload: NotificationPayload = {
+    type,
+    lead,
+    status,
+    interaction,
+    timestamp: new Date().toISOString(),
+  };
 
-  // TODO: Implement notification sending logic
-  console.log(`Notification for lead ${lead.name}: Status changed to ${status}`);
+  const results = await Promise.all([
+    config.notificationSettings?.email && notificationService.sendEmail(payload),
+    config.notificationSettings?.slack && notificationService.sendSlack(payload),
+    config.notificationSettings?.webhook && notificationService.sendWebhook(payload),
+  ]);
+
+  const failedNotifications = results
+    .filter((result): result is { success: false; type: string; error: string } => 
+      result !== undefined && !result.success
+    );
+
+  if (failedNotifications.length > 0) {
+    console.error("Failed to send notifications:", failedNotifications);
+  }
 }
 
 export function createLeadManager(config: LeadManagementConfig = {}) {
   const database = new DatabaseMCPServer();
+  const notificationService = new NotificationService(config.notificationSettings || {});
 
   return createManagerAgent(
     "LeadManager",
@@ -89,7 +112,7 @@ export function createLeadManager(config: LeadManagementConfig = {}) {
             lead.id = result.rows[0].id;
 
             // Send notification for new lead
-            await sendNotification(lead, status, config);
+            await sendNotification(lead, status, config, notificationService, "lead_created");
           } else if (action === "update") {
             // Update lead status
             const result = await database.execute(
@@ -98,6 +121,9 @@ export function createLeadManager(config: LeadManagementConfig = {}) {
             );
 
             status = result.rows[0].status;
+
+            // Send notification for lead update
+            await sendNotification(lead, status, config, notificationService, "lead_updated");
           } else if (action === "interact") {
             // Add interaction
             const interaction = input.lead as unknown as LeadInteraction;
@@ -118,8 +144,8 @@ export function createLeadManager(config: LeadManagementConfig = {}) {
               [status, interaction.lead_id]
             );
 
-            // Send notification for status change
-            await sendNotification(lead, status, config);
+            // Send notification for interaction
+            await sendNotification(lead, status, config, notificationService, "interaction_added", interaction);
           }
 
           // Get all interactions for the lead

@@ -10,6 +10,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@ai-sdk/groq": "latest",
     "@aigne/core": "latest",
     "@hookform/resolvers": "^3.9.1",
     "@radix-ui/react-accordion": "^1.2.2",
@@ -39,7 +40,11 @@
     "@radix-ui/react-toggle": "^1.1.1",
     "@radix-ui/react-toggle-group": "^1.1.1",
     "@radix-ui/react-tooltip": "^1.1.6",
+    "@slack/web-api": "^7.9.1",
+    "@types/nodemailer": "^6.4.17",
+    "ai": "latest",
     "autoprefixer": "^10.4.20",
+    "axios": "^1.8.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "1.0.4",
@@ -49,6 +54,7 @@
     "lucide-react": "^0.454.0",
     "next": "15.1.0",
     "next-themes": "^0.4.4",
+    "nodemailer": "^6.10.0",
     "puppeteer": "^22.3.0",
     "react": "^19",
     "react-day-picker": "8.10.1",
@@ -61,9 +67,7 @@
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^0.9.6",
-    "zod": "^3.24.1",
-    "@ai-sdk/groq": "latest",
-    "ai": "latest"
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
